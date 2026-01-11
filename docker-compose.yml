@@ -1,5 +1,5 @@
 # Docker Compose configuration for PostgreSQL and pgAdmin services
-# Use 'docker-compose up -d' to start the services
+# Use 'docker compose up -d' to start/restart the services / rebuild containers if needed
 
 services:
   postgres:
@@ -10,16 +10,18 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_DB: events
+      POSTGRES_DB: misc
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - data-postgres:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
     ports:
-      - "3010:5432"
+    # this limits connections to localhost only. Otherwise containers on network, network-net can connect too.
+      - "127.0.0.1:3010:5432"
     networks:
       - neyman-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d events"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d misc"]
       interval: 10s
       timeout: 5s
       retries: 5
