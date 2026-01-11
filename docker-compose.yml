@@ -1,0 +1,59 @@
+# Docker Compose configuration for PostgreSQL and pgAdmin services
+# Use 'docker-compose up -d' to start the services
+
+services:
+  postgres:
+    image: postgres:18.1
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: events
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    ports:
+      - "3010:5432"
+    networks:
+      - neyman-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d events"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 1g
+    # cpu_shares: 512
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: val.neyman@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - data-pgadmin:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json:ro
+      - ./pgpass:/pgadmin4/pgpass:ro
+    ports:
+      - "3011:80"
+    networks:
+      - neyman-net
+    depends_on:
+      - postgres
+    mem_limit: 1g
+    
+volumes:
+  data-postgres:
+    driver: local
+  data-pgadmin:
+    driver: local
+
+networks:
+  neyman-net:
+    external: true
+    name: neyman-net
