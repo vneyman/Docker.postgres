@@ -19,16 +19,11 @@ BEGIN
     EXECUTE $sql$
       CREATE TABLE IF NOT EXISTS events.event (
         id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        name text NOT NULL,
+        name text NOT NULL UNIQUE,
         description text,
         date_insert timestamptz NOT NULL DEFAULT (now() AT TIME ZONE 'utc'),
         date_update timestamptz NOT NULL DEFAULT (now() AT TIME ZONE 'utc')
       )
-    $sql$;
-
-    -- Optional explicit index (PK already creates one)
-    EXECUTE $sql$
-      CREATE INDEX IF NOT EXISTS idx_event_id ON events.event (id)
     $sql$;
 
   ELSIF v_events = '2' THEN
